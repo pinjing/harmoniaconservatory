@@ -86,6 +86,14 @@ img {
   padding: 2.5rem 0;
 }
 
+.section--reduced-top {
+  padding-top: 1rem;
+}
+
+.section--reduced-bottom {
+  padding-bottom: 3rem;
+}
+
 .section__intro {
   max-width: 700px;
   margin-bottom: 2rem;
@@ -125,7 +133,7 @@ img {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.75rem 1.5rem;
+  padding: 1.5rem 1.5rem;
   max-width: var(--max-width);
   margin: 0 auto;
 }
@@ -502,7 +510,7 @@ img {
 .faq-list {
   list-style: none;
   padding: 0;
-  margin: 2rem 0 0;
+  margin: 1rem 0 0;
   display: grid;
   gap: 1.5rem;
 }
