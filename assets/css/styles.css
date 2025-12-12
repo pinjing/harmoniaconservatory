@@ -269,14 +269,14 @@ img {
 
 .hero__media {
   position: relative;
-  min-height: 360px;
+  min-height: 750px;
 }
 
 .hero__media::after {
   content: '';
   position: absolute;
   inset: 0;
-  background-image: linear-gradient(135deg, rgba(15, 31, 47, 0.2), rgba(16, 36, 69, 0.6)), url('../images/hero-piano.jpg');
+  background-image: url('../images/hero-piano.jpg');
   background-size: cover;
   background-position: center;
   border-radius: 24px;
@@ -580,6 +580,142 @@ img {
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   padding-top: 1rem;
   font-size: 0.9rem;
+}
+
+.contact-form {
+  background: #fff;
+  padding: 2.5rem;
+  border-radius: 24px;
+  box-shadow: var(--shadow-soft);
+}
+
+.form-group {
+  margin-bottom: 2rem;
+}
+
+.form-group:last-of-type {
+  margin-bottom: 0;
+}
+
+.form-group label {
+  display: block;
+  font-weight: 600;
+  color: var(--color-navy);
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+}
+
+.form-group label span[aria-label="required"] {
+  color: var(--color-copper);
+}
+
+.form-group input[type="text"],
+.form-group input[type="tel"],
+.form-group textarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--color-mist);
+  border-radius: 8px;
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  color: var(--color-ink);
+  background: #fff;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-group input[type="text"]:focus,
+.form-group input[type="tel"]:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: var(--color-gold);
+  box-shadow: 0 0 0 3px rgba(220, 167, 91, 0.1);
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.form-group fieldset {
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+.form-group legend {
+  font-weight: 600;
+  color: var(--color-navy);
+  margin-bottom: 0.75rem;
+  font-size: 0.95rem;
+  padding: 0;
+}
+
+.radio-group {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.radio-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-weight: 400;
+  color: var(--color-ink);
+}
+
+.radio-label input[type="radio"] {
+  width: 1.25rem;
+  height: 1.25rem;
+  cursor: pointer;
+  accent-color: var(--color-gold);
+}
+
+.radio-label span {
+  user-select: none;
+}
+
+/* Honeypot field - hidden from users */
+.form-group.honeypot {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.form-group.honeypot label,
+.form-group.honeypot input {
+  display: none;
+}
+
+/* Form error/success messages */
+.form-message {
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  font-weight: 500;
+}
+
+.form-message--error {
+  background: rgba(196, 122, 60, 0.1);
+  color: var(--color-copper);
+  border: 1px solid rgba(196, 122, 60, 0.3);
+}
+
+.form-message--success {
+  background: rgba(60, 91, 79, 0.1);
+  color: var(--color-forest);
+  border: 1px solid rgba(60, 91, 79, 0.3);
+}
+
+.form-message--info {
+  background: rgba(180, 199, 218, 0.2);
+  color: var(--color-slate);
+  border: 1px solid rgba(180, 199, 218, 0.4);
 }
 
 @media (max-width: 900px) {

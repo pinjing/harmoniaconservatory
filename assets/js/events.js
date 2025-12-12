@@ -5,31 +5,64 @@
   const dateFormatter = new Intl.DateTimeFormat('en-US', {
     month: 'long',
     day: 'numeric',
-    year: 'numeric'
+    year: 'numeric',
+    timeZone: 'America/Los_Angeles'
   });
 
   const shortFormatter = new Intl.DateTimeFormat('en-US', {
     month: 'short',
-    day: 'numeric'
+    day: 'numeric',
+    timeZone: 'America/Los_Angeles'
   });
 
   const parseDate = (value) => {
     if (!value) return null;
-    const date = new Date(value);
+    // Input is always YYYY-MM-DD format (date-only, no time component)
+    const str = String(value).trim();
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(str)) {
+      return null;
+    }
+    
+    // Parse as midnight Pacific time
+    // Create date string with Pacific timezone offset (PST is UTC-8)
+    // JavaScript Date will correctly handle DST when formatting
+    const [year, month, day] = str.split('-').map(Number);
+    const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}T00:00:00-08:00`;
+    const date = new Date(dateStr);
     return Number.isNaN(date.getTime()) ? null : date;
+  };
+
+  // Helper to get date components in Pacific timezone
+  const getPacificDateParts = (date) => {
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      year: 'numeric',
+      month: 'numeric',
+      day: 'numeric',
+      timeZone: 'America/Los_Angeles'
+    });
+    const parts = formatter.formatToParts(date);
+    return {
+      year: parseInt(parts.find(p => p.type === 'year').value),
+      month: parseInt(parts.find(p => p.type === 'month').value),
+      day: parseInt(parts.find(p => p.type === 'day').value)
+    };
   };
 
   const formatRange = (start, end) => {
     if (start && end) {
-      const sameDay = start.toDateString() === end.toDateString();
+      const startParts = getPacificDateParts(start);
+      const endParts = getPacificDateParts(end);
+      const sameDay = startParts.year === endParts.year && 
+                      startParts.month === endParts.month && 
+                      startParts.day === endParts.day;
       if (sameDay) {
         return dateFormatter.format(start);
       }
-      const sameMonth = start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear();
+      const sameMonth = startParts.year === endParts.year && startParts.month === endParts.month;
       if (sameMonth) {
-        return `${shortFormatter.format(start)} – ${shortFormatter.format(end)} ${start.getFullYear()}`;
+        return `${shortFormatter.format(start)} – ${shortFormatter.format(end)} ${startParts.year}`;
       }
-      return `${shortFormatter.format(start)} – ${shortFormatter.format(end)} ${end.getFullYear()}`;
+      return `${shortFormatter.format(start)} – ${shortFormatter.format(end)} ${endParts.year}`;
     }
 
     if (start) {
@@ -64,14 +97,21 @@
   };
 
   const classifyEvents = (events, scope) => {
-    const today = new Date();
+    // Get today's date components in Pacific timezone
+    const now = new Date();
+    const todayParts = getPacificDateParts(now);
 
     const isUpcoming = (event) => {
       const end = event.endDate ?? event.startDate;
       if (!end) return true;
-      const endDay = new Date(end);
-      endDay.setHours(23, 59, 59, 999);
-      return endDay >= today;
+      // Get end date components in Pacific timezone
+      const endParts = getPacificDateParts(end);
+      // Compare date components (year, month, day)
+      if (endParts.year > todayParts.year) return true;
+      if (endParts.year < todayParts.year) return false;
+      if (endParts.month > todayParts.month) return true;
+      if (endParts.month < todayParts.month) return false;
+      return endParts.day >= todayParts.day;
     };
 
     if (scope === 'past') {
