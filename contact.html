@@ -46,6 +46,8 @@
       <div class="container">
         <div style="max-width: 600px; margin: 0 auto;">
           <form class="contact-form" id="contact-form" method="post" action="https://formspree.io/f/xrbnlzva">
+            <!-- Redirect back to this page after submission -->
+            <input type="hidden" name="_next" value="contact.html?success=true">
             <!-- Honeypot field - hidden from users but visible to bots -->
             <div class="form-group honeypot">
               <label for="website">Website (leave blank)</label>
