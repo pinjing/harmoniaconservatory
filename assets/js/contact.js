@@ -9,14 +9,6 @@
   const form = document.getElementById('contact-form');
   if (!form) return;
 
-  // Set redirect URL for Formspree (absolute URL for reliability)
-  const nextInput = form.querySelector('input[name="_next"]');
-  if (nextInput) {
-    const currentUrl = new URL(window.location.href);
-    currentUrl.searchParams.set('success', 'true');
-    nextInput.value = currentUrl.toString();
-  }
-
   // Create message container
   const createMessage = (text, type) => {
     const message = document.createElement('div');
@@ -104,7 +96,7 @@
 
   // Validate honeypot
   const validateHoneypot = () => {
-    const honeypotField = form.querySelector('#website');
+    const honeypotField = form.querySelector('input[name="_gotcha"]');
     if (honeypotField && honeypotField.value.trim() !== '') {
       return {
         valid: false,
@@ -129,28 +121,9 @@
     observer.observe(formContainer);
   }
 
-  // Check for success/error messages from Formspree redirect
-  const urlParams = new URLSearchParams(window.location.search);
-  if (urlParams.get('success') === 'true') {
-    const successMessage = createMessage(
-      'Thank you! Your message has been received. We\'ll get back to you soon.',
-      'success'
-    );
-    form.insertBefore(successMessage, form.firstChild);
-    // Clean up URL
-    window.history.replaceState({}, document.title, window.location.pathname);
-  } else if (urlParams.get('error')) {
-    const errorMessage = createMessage(
-      'An error occurred while submitting the form. Please try again later.',
-      'error'
-    );
-    form.insertBefore(errorMessage, form.firstChild);
-    // Clean up URL
-    window.history.replaceState({}, document.title, window.location.pathname);
-  }
-
   // Handle form submission
   form.addEventListener('submit', (e) => {
+    e.preventDefault();
     removeMessages();
 
     // Time-based validation (form must be visible for at least 3 seconds)
@@ -159,7 +132,6 @@
       const minTimeVisible = 3000; // 3 seconds
       
       if (timeVisible < minTimeVisible) {
-        e.preventDefault();
         const message = createMessage(
           'Please take your time filling out the form.',
           'error'
@@ -172,7 +144,6 @@
     // Validate honeypot
     const honeypotCheck = validateHoneypot();
     if (!honeypotCheck.valid) {
-      e.preventDefault();
       const message = createMessage(honeypotCheck.message, 'error');
       form.insertBefore(message, form.firstChild);
       return;
@@ -181,16 +152,17 @@
     // Check rate limiting
     const rateLimitCheck = checkRateLimit();
     if (!rateLimitCheck.allowed) {
-      e.preventDefault();
       const message = createMessage(rateLimitCheck.message, 'error');
       form.insertBefore(message, form.firstChild);
       return;
     }
 
-    // If all validations pass, allow form to submit naturally
-    // This allows Formspree's reCAPTCHA to work properly
-    // Record submission for rate limiting before allowing submit
-    recordSubmission();
+    // Get form data
+    const formData = new FormData(form);
+    // Note: _gotcha is kept in FormData for Formspree validation
+    // We only create a data object for logging purposes
+    const data = Object.fromEntries(formData.entries());
+    delete data._gotcha; // Remove from log, but keep in FormData
 
     // Show loading state
     const submitButton = form.querySelector('button[type="submit"]');
@@ -198,8 +170,62 @@
     submitButton.disabled = true;
     submitButton.textContent = 'Submitting...';
 
-    // Form will now submit naturally to Formspree
-    // Formspree will handle reCAPTCHA and redirect back with success/error params
+    // Get the form action URL
+    const formAction = form.getAttribute('action');
+    const formMethod = form.getAttribute('method') || 'POST';
+
+    // Submit form to Formspree endpoint
+    fetch(formAction, {
+      method: formMethod,
+      body: formData, // FormData includes _gotcha for Formspree validation
+      headers: {
+        'Accept': 'application/json'
+      }
+    })
+    .then(response => {
+      if (response.ok) {
+        return response.json();
+      } else {
+        return response.json().then(err => {
+          throw new Error(err.error || 'An error occurred while submitting the form.');
+        });
+      }
+    })
+    .then(() => {
+      // Record submission for rate limiting
+      recordSubmission();
+
+      // Show success message
+      const successMessage = createMessage(
+        'Thank you! Your message has been received. We\'ll get back to you soon.',
+        'success'
+      );
+      form.insertBefore(successMessage, form.firstChild);
+
+      // Reset form
+      form.reset();
+
+      // Reset button
+      submitButton.disabled = false;
+      submitButton.textContent = originalText;
+
+      // Scroll to top of form
+      form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    })
+    .catch(error => {
+      // Reset button
+      submitButton.disabled = false;
+      submitButton.textContent = originalText;
+
+      // Show error message
+      const errorMessage = createMessage(
+        error.message || 'An error occurred while submitting the form. Please try again later.',
+        'error'
+      );
+      form.insertBefore(errorMessage, form.firstChild);
+
+      // Scroll to top of form
+      form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
   });
 })();
-
