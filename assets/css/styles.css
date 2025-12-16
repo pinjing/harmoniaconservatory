@@ -251,6 +251,10 @@ img {
   color: #2a3848;
 }
 
+.hero__content a.btn--secondary {
+    margin-left: 1rem;
+}
+
 .hero__badges {
   display: flex;
   flex-wrap: wrap;
